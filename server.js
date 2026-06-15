@@ -29,13 +29,15 @@ app.use(session({
 }));
 
 // --- Groq AI Setup ---
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = process.env.GROQ_API_KEY 
+  ? new Groq({ apiKey: process.env.GROQ_API_KEY }) 
+  : null;
 
 const PORTFOLIO_DATA = `
 Name: Tiwari Ajay Virendra
-Skills: React, Node, Express, MongoDB, MySQL, Tailwind, Docker, Kubernetes, Firebase, Python, 
-Data Science: NumPy, Pandas, PyTorch, TensorFlow, PySpark, OpenCV.
-AI/ML Algorithms: Linear & Logistic Regression, Classification, General Logistics, ETL Pipeline architecture.
+Skills: React, Node, Express, MongoDB, MySQL, Tailwind, Docker, Kubernetes, Firebase, Python (NumPy, Pandas).
+Data Science & AI: PyTorch, TensorFlow, PySpark, OpenCV, Scikit-learn.
+AI/ML Algorithms: Linear Regression, Logistic Regression, Classification, General Logistics, ETL Pipeline architecture.
 Projects: Jigoogle Numbers, Live Chat, Panel Paradise, Pest Mark, ETL Pipeline Creation (End-to-End Data Processing).
 `;
 
@@ -51,7 +53,7 @@ app.use(cors());
 app.use(express.json()); // Required to parse JSON bodies
 
 const razorpay = new Razorpay({
-  key_id: process.env.VITE_RAZORPAY_KEY_ID,
+  key_id: process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
@@ -70,6 +72,11 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data) => {
     console.log("📩 Message received:", data);
+
+    if (!groq) {
+      console.error("❌ Groq is not initialized. Check GROQ_API_KEY in Render dashboard.");
+      return;
+    }
 
     try {
       // 1. Get AI Response from Groq
